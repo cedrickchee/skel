@@ -22,9 +22,6 @@ func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		// If there was an error, we log it and send the client a generic error
 		// message.
-		app.logger.Println(err)
-		http.Error(w,
-			"The server encountered a problem and could not process your request",
-			http.StatusInternalServerError)
+		app.serverErrorResponse(w, r, err)
 	}
 }
