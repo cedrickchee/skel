@@ -57,8 +57,9 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 
 	// Read the DSN value from the db-dsn command-line flag into the config
-	// struct. We default to using our development DSN if no flag is provided.
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://skel:pa55word@localhost/skel", "PostgreSQL DSN")
+	// struct. Use the value of the SKEL_DB_DSN environment variable as the
+	// default value for our db-dsn command-line flag.
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("SKEL_DB_DSN"), "PostgreSQL DSN")
 
 	flag.Parse()
 
