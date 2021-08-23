@@ -26,3 +26,17 @@ You can build `skel` locally by cloning the repository, then run:
 ```sh
 $ make
 ```
+
+### Development Environment with Live Code Reloading
+
+Run [reflex](https://github.com/cespare/reflex) which will be used for hot
+recompiling the code. It can be very useful for quickly testing your changes.
+
+```sh
+$ reflex -c reflex.conf
+```
+
+What the command means is: "watch for changes to `go.mod` and all files ending
+in `.go` and execute `go run ./cmd/api` when it happens. The `-s` flag stands
+for service and will make reflex kill previously run command before starting it
+again, which is exactly what we want.
