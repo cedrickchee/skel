@@ -40,3 +40,30 @@ What the command means is: "watch for changes to `go.mod` and all files ending
 in `.go` and execute `go run ./cmd/api` when it happens. The `-s` flag stands
 for service and will make reflex kill previously run command before starting it
 again, which is exactly what we want.
+
+## Environment Variables
+
+PostgreSQL database DSN.
+
+```sh
+$ export SKEL_DB_DSN=postgres://skel:pa55word@localhost/skel
+```
+
+## Command-Line Flags
+
+```sh
+$ go run ./cmd/api --help
+Usage of /tmp/go-build2584491206/b001/exe/api:
+  -db-dsn string
+    	PostgreSQL DSN (default "postgres://skel:pa55word@localhost/skel")
+  -db-max-idle-conns int
+    	PostgreSQL max idle connections (default 25)
+  -db-max-idle-time string
+    	PostgreSQL max idle time (default "15m")
+  -db-max-open-conns int
+    	PostgreSQL max open connections (default 25)
+  -env string
+    	Environment (development|staging|production) (default "development")
+  -port int
+    	API server port (default 4000)
+```
