@@ -2,18 +2,18 @@ package main
 
 import (
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/cedrickchee/skel/internal/data"
+	"github.com/cedrickchee/skel/internal/jsonlog"
 )
 
 // Create a newTestApplication helper which returns an instance of our
 // application struct containing mocked dependencies.
 func newTestApplication(t *testing.T) *application {
-	logger := log.New(ioutil.Discard, "", 0)
+	logger := jsonlog.New(ioutil.Discard, jsonlog.LevelInfo)
 	return &application{
 		logger: logger,
 		models: data.NewMockModels(),
