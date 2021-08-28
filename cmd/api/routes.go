@@ -6,7 +6,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (app *application) routes() *httprouter.Router {
+func (app *application) routes() http.Handler {
 	// Initialize a new httprouter router instance.
 	router := httprouter.New()
 
@@ -30,6 +30,8 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.showMovieHandler)
 	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateMovieHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler)
-	// Return the httprouter instance.
-	return router
+
+	// Wrap the router with the panic recovery middleware. This will ensure that
+	// the middleware runs for every one of our API endpoints.
+	return app.recoverPanic(router)
 }
