@@ -278,7 +278,7 @@ func (app *application) listMovieHandler(w http.ResponseWriter, r *http.Request)
 
 	// Call the GetAll() method to retrieve the movies, passing in the various
 	// filter parameters.
-	movies, err := app.models.Movies.GetAll(input.Title, input.Genres,
+	movies, metadata, err := app.models.Movies.GetAll(input.Title, input.Genres,
 		input.Filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -286,7 +286,8 @@ func (app *application) listMovieHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Send a JSON response containing the movie data.
-	err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies}, nil)
+	err = app.writeJSON(w, http.StatusOK,
+		envelope{"movies": movies, "metadata": metadata}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
