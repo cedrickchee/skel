@@ -4,9 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	"fmt"
-	"log"
-	"net/http"
 	"os"
 	"time"
 
@@ -124,27 +121,11 @@ func main() {
 		models: data.NewModels(db),
 	}
 
-	// Declare a HTTP server with some sensible timeout settings, which listens
-	// on the port provided in the config struct and uses the httprouter
-	// instance returned by app.routes() as the server handler.
-	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.port),
-		Handler: app.routes(),
-		// Create a new Go log.Logger instance with the log.New() function,
-		// passing in our custom Logger as the first parameter. The "" and 0
-		// indicate that the log.Logger instance should not use a prefix or any
-		// flags.
-		ErrorLog:     log.New(logger, "", 0),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
-	}
-
 	// Start the HTTP server.
-	logger.PrintInfo("starting server",
-		map[string]string{"addr": srv.Addr, "env": cfg.env})
-	err = srv.ListenAndServe()
-	logger.PrintFatal(err, nil)
+	err = app.serve()
+	if err != nil {
+		logger.PrintFatal(err, nil)
+	}
 }
 
 // The openDB() function returns a sql.DB connection pool.
