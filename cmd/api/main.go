@@ -9,6 +9,7 @@ import (
 
 	"github.com/cedrickchee/skel/internal/data"
 	"github.com/cedrickchee/skel/internal/jsonlog"
+	"github.com/cedrickchee/skel/internal/mailer"
 
 	// Import the pq driver so that it can register itself with the database/sql
 	// package. Note that we alias this import to the blank identifier, to stop
@@ -46,6 +47,14 @@ type config struct {
 		burst   int
 		enabled bool
 	}
+	// Hold the SMTP server settings.
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 // Define an application struct to hold the dependencies for our HTTP handlers,
@@ -56,6 +65,7 @@ type application struct {
 	config config
 	logger *jsonlog.Logger
 	models data.Models
+	mailer mailer.Mailer
 }
 
 func main() {
@@ -85,6 +95,14 @@ func main() {
 	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+
+	// Read the SMTP server configuration settings into the config struct, using
+	// the Mailtrap settings as the default values.
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.mailtrap.io", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 2525, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "b3754c2b680c33", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "bd6fa5aaa2bd2f", "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Skel <no-reply@example.com>", "SMTP sender")
 
 	flag.Parse()
 
@@ -119,6 +137,8 @@ func main() {
 		// Initialize a Models struct, passing in the connection pool as a
 		// parameter.
 		models: data.NewModels(db),
+		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username,
+			cfg.smtp.password, cfg.smtp.sender),
 	}
 
 	// Start the HTTP server.
