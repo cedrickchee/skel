@@ -31,6 +31,8 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateMovieHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler)
 
+	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
+
 	// Wrap the router with the rate limit and panic recovery middleware. This
 	// will ensure that the middleware runs for every one of our API endpoints.
 	return app.recoverPanic(app.rateLimit(router))
