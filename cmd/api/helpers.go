@@ -232,3 +232,21 @@ func (app *application) readInt(qs url.Values, key string,
 	// Otherwise, return the converted integer value.
 	return i
 }
+
+// background is a helper function that accepts an arbitrary function as a
+// parameter.
+func (app *application) background(fn func()) {
+	// Launch a background goroutine.
+	go func() {
+		// Run a deferred function which uses recover() to catch any panic, and
+		// log an error message instead of terminating the application.
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.PrintError(fmt.Errorf("%s", err), nil)
+			}
+		}()
+
+		// Execute the arbitrary function that we passed as the parameter.
+		fn()
+	}()
+}
