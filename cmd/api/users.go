@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/cedrickchee/skel/internal/data"
@@ -69,17 +68,9 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// Launch a background goroutine to send the welcome email.
-	go func() {
-		// Run a deferred function which uses recover() to catch any panic, and
-		// log an error message instead of terminating the application.
-		defer func() {
-			if err := recover(); err != nil {
-				app.logger.PrintError(fmt.Errorf("%s", err), nil)
-			}
-		}()
-
-		// Send the welcome email.
+	// Use the background helper to execute an anonymous function that sends the
+	// welcome email.
+	app.background(func() {
 		err = app.mailer.Send(user.Email, "user_welcome.tmpl", user)
 		if err != nil {
 			// Importantly, if there is an error sending the email then we use
@@ -87,7 +78,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 			// app.serverErrorResponse() helper like before.
 			app.logger.PrintError(err, nil)
 		}
-	}()
+	})
 
 	// Write a JSON response containing the user data along with a 202 Accepted
 	// status code. This status code indicates that the request has been
