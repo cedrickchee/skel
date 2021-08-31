@@ -3,6 +3,7 @@ package data
 import (
 	"database/sql"
 	"errors"
+	"time"
 )
 
 // Define a custom ErrRecordNotFound error. We'll return this from our Get()
@@ -29,6 +30,11 @@ type Models struct {
 		GetByEmail(email string) (*User, error)
 		Update(user *User) error
 	}
+	Tokens interface {
+		New(userID int64, ttl time.Duration, scope string) (*Token, error)
+		Insert(token *Token) error
+		DeleteAllForUser(scope string, userID int64) error
+	}
 }
 
 // For ease of use, we also add a New() method which returns a Models struct
@@ -37,6 +43,7 @@ func NewModels(db *sql.DB) Models {
 	return Models{
 		Movies: MovieModel{DB: db},
 		Users:  UserModel{DB: db},
+		Tokens: TokenModel{DB: db},
 	}
 }
 
