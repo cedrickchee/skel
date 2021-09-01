@@ -25,6 +25,7 @@ func (app *application) routes() http.Handler {
 	// http.MethodPost are constants which equate to the strings 'GET' and
 	// 'POST' respectively.
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+
 	router.HandlerFunc(http.MethodGet, "/v1/movies", app.listMovieHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/movies", app.createMovieHandler)
 	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.showMovieHandler)
@@ -33,6 +34,8 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
+
+	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationTokenHandler)
 
 	// Wrap the router with the rate limit and panic recovery middleware. This
 	// will ensure that the middleware runs for every one of our API endpoints.
