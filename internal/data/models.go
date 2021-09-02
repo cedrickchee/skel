@@ -38,6 +38,7 @@ type Models struct {
 	}
 	Permissions interface {
 		GetAllForUser(userID int64) (Permissions, error)
+		AddForUser(userID int64, codes ...string) error
 	}
 }
 
