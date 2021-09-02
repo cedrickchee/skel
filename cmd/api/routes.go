@@ -39,5 +39,5 @@ func (app *application) routes() http.Handler {
 
 	// Wrap the router with the middlewares. This will ensure that the
 	// middleware runs for every one of our API endpoints.
-	return app.recoverPanic(app.rateLimit(app.authenticate(router)))
+	return app.recoverPanic(app.enableCORS(app.rateLimit(app.authenticate(router))))
 }
