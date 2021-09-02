@@ -227,6 +227,25 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 	})
 }
 
+// requireAuthenticatedUser checks that a user is not anonymous.
+func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Use the contextGetUser() helper to retrieve the user information from
+		// the request context.
+		user := app.contextGetUser(r)
+
+		// If the user is anonymous, then call the helper for sending error
+		// message to inform the client that they should authenticate before
+		// trying again.
+		if user.IsAnonymous() {
+			app.authenticationRequiredResponse(w, r)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 // requireActivatedUser carry out these kinds of authorization checks:
 // endpoints can only be accessed by users who are authenticated (not
 // anonymous), and who have activated their account.
@@ -238,22 +257,16 @@ func (app *application) requireActivatedUser(next http.HandlerFunc) http.Handler
 	// `/v1/movie**` handler functions directly with this middleware, without
 	// needing to make any further conversions.
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// Rather than returning this http.HandlerFunc we assign it to the variable
+	// fn.
+	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Extract the User struct from the request context and then check the
-		// IsAnonymous() method and Activated field to determine whether the
-		// request should continue or not.
+		// Activated field to determine whether the request should continue or
+		// not.
 
 		// Use the contextGetUser() helper to retrieve the user information from
 		// the request context.
 		user := app.contextGetUser(r)
-
-		// If the user is anonymous, then call the
-		// authenticationRequiredResponse() to inform the client that they
-		// should authenticate before trying again.
-		if user.IsAnonymous() {
-			app.authenticationRequiredResponse(w, r)
-			return
-		}
 
 		// If the user is not activated, use the inactiveAccountResponse()
 		// helper to inform them that they need to activate their account.
@@ -265,4 +278,10 @@ func (app *application) requireActivatedUser(next http.HandlerFunc) http.Handler
 		// Call the next handler in the chain.
 		next.ServeHTTP(w, r)
 	})
+
+	// Wrap fn with the requireAuthenticatedUser() middleware before returning
+	// it.
+	// The way that we’ve set this up, this middleware now automatically calls
+	// the requireAuthenticatedUser() middleware before being executed itself.
+	return app.requireAuthenticatedUser(fn)
 }
