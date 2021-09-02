@@ -36,15 +36,19 @@ type Models struct {
 		Insert(token *Token) error
 		DeleteAllForUser(scope string, userID int64) error
 	}
+	Permissions interface {
+		GetAllForUser(userID int64) (Permissions, error)
+	}
 }
 
 // For ease of use, we also add a New() method which returns a Models struct
 // containing the initialized MovieModel and initialized UserModel.
 func NewModels(db *sql.DB) Models {
 	return Models{
-		Movies: MovieModel{DB: db},
-		Users:  UserModel{DB: db},
-		Tokens: TokenModel{DB: db},
+		Movies:      MovieModel{DB: db},
+		Users:       UserModel{DB: db},
+		Tokens:      TokenModel{DB: db},
+		Permissions: PermissionModel{DB: db},
 	}
 }
 
