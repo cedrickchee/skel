@@ -332,6 +332,9 @@ func (app *application) requirePermission(code string, next http.HandlerFunc) ht
 // reflects (or echoes) back the value of the request's Origin header.
 // Otherwise, we should allow the request to proceed as normal without setting
 // that response header.
+// It also intercepts and responds to any preflight requests.
+// The purpose of this preflight request is to determine whether the real
+// cross-origin request will be permitted or not.
 func (app *application) enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// A side effect of this middleware logic is that the response will be
@@ -343,6 +346,10 @@ func (app *application) enableCORS(next http.Handler) http.Handler {
 		// response header to warn any caches that the response may be
 		// different.
 		w.Header().Add("Vary", "Origin")
+
+		// Set a header on all responses, as the response will be different
+		// depending on whether or not this header exists in the request.
+		w.Header().Add("Vary", "Access-Control-Request-Method")
 
 		// Get the value of the request's Origin header.
 		origin := r.Header.Get("Origin")
@@ -358,6 +365,27 @@ func (app *application) enableCORS(next http.Handler) http.Handler {
 					// 'Access-Control-Allow-Origin' response header with the
 					// request origin as the value.
 					w.Header().Set("Access-Control-Allow-Origin", origin)
+
+					// **** Identify it's a preflight cross-origin request ****
+					// Check if the request has the HTTP method OPTIONS and
+					// contains the "Access-Control-Request-Method" header. If
+					// it does, then we treat it as a preflight request.
+					if r.Method == http.MethodOptions &&
+						r.Header.Get("Access-Control-Request-Method") != "" {
+						// ***** Response with some special headers *****
+						// Set the necessary preflight response headers to let
+						// the browser know whether or not it's OK for the real
+						// request to proceed.
+						w.Header().Set("Access-Control-Allow-Methods",
+							"OPTIONS, PUT, PATCH, DELETE")
+						w.Header().Set("Access-Control-Allow-Headers",
+							"Authorization, Content-Type")
+
+						// Write the headers along with a 200 OK status and
+						// return from the middleware with no further action.
+						w.WriteHeader(http.StatusOK)
+						return
+					}
 				}
 			}
 		}
