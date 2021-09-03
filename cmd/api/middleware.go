@@ -326,11 +326,43 @@ func (app *application) requirePermission(code string, next http.HandlerFunc) ht
 	return app.requireActivatedUser(fn)
 }
 
-//enableCORS sets the "Access-Control-Allow-Origin" response header.
+// enableCORS check if the value of the request Origin header is an exact,
+// case-sensitive, match for one of our trusted origins. If there is a match,
+// then we should set an "Access-Control-Allow-Origin" response header which
+// reflects (or echoes) back the value of the request's Origin header.
+// Otherwise, we should allow the request to proceed as normal without setting
+// that response header.
 func (app *application) enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// A side effect of this middleware logic is that the response will be
+		// different depending on the origin that the request is coming from.
+		// Specifically, the value of the "Access-Control-Allow-Origin" header
+		// may be different in the response, or it may not even be included at
+		// all.
+		// So because of this we should make sure to always set a "Vary: Origin"
+		// response header to warn any caches that the response may be
+		// different.
+		w.Header().Add("Vary", "Origin")
 
+		// Get the value of the request's Origin header.
+		origin := r.Header.Get("Origin")
+
+		// Only run this if there's an Origin request header present AND at
+		// least one trusted origin is configured.
+		if origin != "" && len(app.config.cors.trustedOrigins) != 0 {
+			// Loop through the list of trusted origins, checking to see if the
+			// request origin exactly matches one of them.
+			for i := range app.config.cors.trustedOrigins {
+				if origin == app.config.cors.trustedOrigins[i] {
+					// If there is a match, then set a
+					// 'Access-Control-Allow-Origin' response header with the
+					// request origin as the value.
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+				}
+			}
+		}
+
+		// Call the next handler in the chain.
 		next.ServeHTTP(w, r)
 	})
 }
