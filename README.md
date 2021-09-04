@@ -67,3 +67,27 @@ Usage of /tmp/go-build2584491206/b001/exe/api:
   -port int
     	API server port (default 4000)
 ```
+
+Start the API, passing in a couple of command line flags for different purposes:
+
+- Run the API with rate limiting disabled:
+
+  ```sh
+  $ go run ./cmd/api -limiter-enabled=false
+  ```
+
+- Before you run your load testing, you might like to play around with this and
+  try changing some of the configuration parameters for the connection pool to
+  see how it affects the behavior of the figures (from your benchmarking tool)
+  under load.
+
+  ```sh
+  $ go run ./cmd/api -limiter-enabled=false -db-max-open-conns=50 -db-max-idle-conns=50 -db-max-idle-time=20s -port=4000
+  ```
+
+- Run your API, passing in `http://localhost:9000` and `http://localhost:9001`
+  as CORS trusted origins like so:
+
+  ```sh
+  $ go run ./cmd/api -cors-trusted-origins='http://localhost:9000 http://localhost:9001'
+  ```
