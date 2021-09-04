@@ -3,6 +3,7 @@ module github.com/cedrickchee/skel
 go 1.16
 
 require (
+	github.com/felixge/httpsnoop v1.0.1
 	github.com/go-mail/mail/v2 v2.3.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.2
