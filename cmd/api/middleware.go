@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/cedrickchee/skel/internal/data"
 	"github.com/cedrickchee/skel/internal/validator"
+	"github.com/felixge/httpsnoop"
 	"golang.org/x/time/rate"
 )
 
@@ -403,26 +405,50 @@ func (app *application) metrics(next http.Handler) http.Handler {
 	totalRequestsReceived := expvar.NewInt("total_requests_received")
 	totalResponsesSent := expvar.NewInt("total_responses_sent")
 	totalProcessingTimeMicroseconds := expvar.NewInt("total_processing_time_μs")
+	totalResponseSentByStatus := expvar.NewMap("total_responses_sent_by_status")
 
 	// The following code will be run for every request.
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Record the time that we started to process the request.
-		start := time.Now()
-
 		// Use the Add() method to increment the number of requests received by
 		// 1.
 		totalRequestsReceived.Add(1)
 
-		// Call the next handler in the chain.
-		next.ServeHTTP(w, r)
+		// ***** Record HTTP status codes *****
+		// The tricky part of doing this is finding out what HTTP status code a
+		// response has. Unfortunately Go doesn't make this easy — there is no
+		// built-in way to examine a http.ResponseWriter to see what status code
+		// is going to be sent to a client.
+		//
+		// The de-facto workaround is to create your own custom implementation
+		// of http.ResponseWriter which records a copy of the HTTP status code
+		// for future access. But doing this can be quite brittle and awkward —
+		// there are several edge cases that you need to be wary of, and it can
+		// cause problems if you are using any of the "additional"
+		// ResponseWriter interfaces such as http.Flusher and http.Hijacker.
+		//
+		// Rather than making your own custom http.ResponseWriter
+		// implementation, I highly recommend using the third-party httpsnoop
+		// package. It's small and focused, with no additional dependencies, and
+		// it makes it very easy to record the HTTP status code and size of each
+		// response, along with the total processing time for each request.
+		//
+		// Call the httpsnoop.CaptureMetrics() function, passing in the next
+		// handler in the chain along with the existing http.ResponseWriter and
+		// http.Request. This returns the metrics struct.
+		metrics := httpsnoop.CaptureMetrics(next, w, r)
 
 		// On the way back up the middleware chain, increment the number of
 		// responses sent by 1.
 		totalResponsesSent.Add(1)
 
-		// Calculate the number of microseconds since we began to process the
-		// request, then increment the total processing time by this amount.
-		duration := time.Now().Sub(start).Microseconds()
-		totalProcessingTimeMicroseconds.Add(duration)
+		// Get the request processing time in microseconds from httpsnoop and
+		// increment the cumulative processing time.
+		totalProcessingTimeMicroseconds.Add(metrics.Duration.Microseconds())
+
+		// Use the Add() method to increment the count for the given status code
+		// by 1. Note that the expvar map is string-keyed, so we need to use the
+		// strconv.Itoa() function to convert the status code (which is an
+		// integer) to a string.
+		totalResponseSentByStatus.Add(strconv.Itoa(metrics.Code), 1)
 	})
 }
