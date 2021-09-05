@@ -91,3 +91,47 @@ Start the API, passing in a couple of command line flags for different purposes:
   ```sh
   $ go run ./cmd/api -cors-trusted-origins='http://localhost:9000 http://localhost:9001'
   ```
+
+## Using Makefile
+
+Use the GNU [make](https://www.gnu.org/software/make/manual/make.html) utility
+and makefiles to help automate common tasks in out project, such as creating and
+executing database migrations.
+
+### Displaying help information
+
+Execute the `help` target, you should get a response which lists all the
+available targets and the corresponding help text.
+
+```sh
+$ make
+Usage:
+  help                        print this help message
+  run/api                     run the cmd/api application
+  db/psql                     connect to the database using psql
+  db/migrations/new name=$1   create a new database migration
+  db/migrations/up            apply all up database migrations
+```
+
+### Using make for Common Tasks
+
+You should be able to execute the rules by typing the full target name when
+running `make`. For example:
+
+```sh
+$ make run/api
+go run ./cmd/api
+{"level":"INFO","time":"2021-09-04T14:44:36Z","message":"database connection pool established"}
+{"level":"INFO","time":"2021-09-04T14:44:36Z","message":"starting server","properties":{"addr":":4000","env":"development"}}
+```
+
+If you run the `db/migrations/up` rule with the `name=create_example_table`
+argument you should see the following output:
+
+```sh
+$ make db/migrations/up name=create_example_table
+Creating migration files for create_example_table
+migrate create -seq -ext=.sql -dir=./migrations create_example_table
+/home/cedric/dev/repo/gh/skel/migrations/000007_create_example_table.up.sql
+/home/cedric/dev/repo/gh/skel/migrations/000007_create_example_table.down.sql
+```
