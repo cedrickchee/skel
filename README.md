@@ -131,6 +131,7 @@ Usage:
   db/psql                     connect to the database using psql
   db/migrations/new name=$1   create a new database migration
   db/migrations/up            apply all up database migrations
+  audit                       tidy dependencies and format, vet and test all code
 ```
 
 ### Using make for Common Tasks
@@ -154,4 +155,21 @@ Creating migration files for create_example_table
 migrate create -seq -ext=.sql -dir=./migrations create_example_table
 /home/cedric/dev/repo/gh/skel/migrations/000007_create_example_table.up.sql
 /home/cedric/dev/repo/gh/skel/migrations/000007_create_example_table.down.sql
+```
+
+## Quality Controlling Code
+
+The audit rule will:
+- prune dependencies
+- verify module dependencies
+- format all `.go` files, according to the Go standard
+- vet code; runs a variety of analyzers which carry out static analysis
+- staticcheck; carry out some additional static analysis checks
+- test
+
+To run these checks before you commit any code changes into your version control
+system or build any binaries.
+
+```sh
+$ make audit
 ```
