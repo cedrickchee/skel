@@ -21,9 +21,12 @@ Development practices is based on guiding principles of well written Go code.
 
 ## Prerequisite
 
+You'll need to install these softwares and tools on your machine:
+
 - PostgreSQL database (version 12+)
 - make utility
 - [reflex](https://github.com/cespare/reflex) (optional)
+- [staticcheck](https://staticcheck.io/) tool to carry out some [additional static analysis checks](https://staticcheck.io/docs/checks)
 
 ## Quickstart
 
