@@ -1,3 +1,4 @@
+//lint:file-ignore U1000 WIP
 package main
 
 import (
