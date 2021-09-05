@@ -19,18 +19,43 @@ Development practices is based on guiding principles of well written Go code.
 - Correctness
 - Productivity
 
-## Development
+## Prerequisite
 
-You can build `skel` locally by cloning the repository, then run:
+- PostgreSQL database (version 12+)
+- make utility
+- [reflex](https://github.com/cespare/reflex) (optional)
+
+## Quickstart
+
+First, clone the repository:
 
 ```sh
-$ make
+$ git clone https://github.com/cedrickchee/skel.git
+$ cd skel
 ```
+
+**Environment Variables**
+
+Create a `.envrc` file in the root directory of this project
+by renaming `.envrc.example` to `.envrc`.
+
+```sh
+# PostgreSQL database DSN.
+SKEL_DB_DSN=postgres://skel:pa55word@localhost/skel
+```
+
+Then, you can build and run `skel` by using `make`:
+
+```sh
+$ make run/api
+```
+
+## Development
 
 ### Development Environment with Live Code Reloading
 
-Run [reflex](https://github.com/cespare/reflex) which will be used for hot
-recompiling the code. It can be very useful for quickly testing your changes.
+Run reflex which will be used for hot recompiling the code. It can be very
+useful for quickly testing your changes.
 
 ```sh
 $ reflex -c reflex.conf
@@ -40,14 +65,6 @@ What the command means is: "watch for changes to `go.mod` and all files ending
 in `.go` and execute `go run ./cmd/api` when it happens. The `-s` flag stands
 for service and will make reflex kill previously run command before starting it
 again, which is exactly what we want.
-
-## Environment Variables
-
-PostgreSQL database DSN.
-
-```sh
-$ export SKEL_DB_DSN=postgres://skel:pa55word@localhost/skel
-```
 
 ## Command-Line Flags
 
