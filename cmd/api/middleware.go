@@ -4,7 +4,6 @@ import (
 	"errors"
 	"expvar"
 	"fmt"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,6 +13,7 @@ import (
 	"github.com/cedrickchee/skel/internal/data"
 	"github.com/cedrickchee/skel/internal/validator"
 	"github.com/felixge/httpsnoop"
+	"github.com/tomasen/realip"
 	"golang.org/x/time/rate"
 )
 
@@ -98,12 +98,8 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Only carry out the check if rate limiting is enabled.
 		if app.config.limiter.enabled {
-			// Extract the client's IP address from the request.
-			ip, _, err := net.SplitHostPort(r.RemoteAddr)
-			if err != nil {
-				app.serverErrorResponse(w, r, err)
-				return
-			}
+			// Get the client's real IP address from the request.
+			ip := realip.FromRequest(r)
 
 			// Because we’ll potentially have multiple goroutines accessing the map
 			// concurrently, we’ll need to protect access to the map by using a
