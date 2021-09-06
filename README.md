@@ -131,7 +131,9 @@ Usage:
   db/psql                     connect to the database using psql
   db/migrations/new name=$1   create a new database migration
   db/migrations/up            apply all up database migrations
-  audit                       tidy dependencies and format, vet and test all code
+  audit                       tidy and vendor dependencies and format, vet and test all code
+  vendor                      tidy and vendor dependencies
+  build/api                   build the cmd/api application
 ```
 
 ### Using make for Common Tasks
@@ -172,4 +174,21 @@ system or build any binaries.
 
 ```sh
 $ make audit
+```
+
+## Vendoring New Dependencies
+
+**Note:** It's important to point out that there's no easy way to verify that
+the _checksums of the vendored dependencies_ match the checksums in the `go.sum`
+file.
+
+To mitigate that, it's a good idea to run both `go mod verify` and
+`go mod vendor` regularly.
+Using `go mod verify` will verify that the dependencies in your module cache
+match the `go.sum` file, and `go mod vendor` will copy those same dependencies
+from the module cache into your `vendor` directory.
+
+```sh
+# vendor rule execute both `go mod verify` and `go mod vendor` commands.
+$ make vendor
 ```
