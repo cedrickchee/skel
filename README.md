@@ -192,3 +192,24 @@ from the module cache into your `vendor` directory.
 # vendor rule execute both `go mod verify` and `go mod vendor` commands.
 $ make vendor
 ```
+
+## Build
+
+Build and run executable binaries for our applications.
+
+To build a binary, you need to execute:
+
+```sh
+$ make build/api
+```
+
+You should see that an executable binary file gets created at `./bin/api`.
+
+And you should be able to run this executable to start your API application,
+passing in any command-line flag values as necessary. For example:
+
+```sh
+$ ./bin/api -port=3000 -db-dsn=postgres://myuser:mysuperpass@localhost/skel
+{"level":"INFO","time":"2021-09-06T13:00:00Z","message":"database connection pool established"}
+{"level":"INFO","time":"2021-09-06T13:00:00Z","message":"starting server","properties":{"addr":":3000","env":"development"}}
+```
