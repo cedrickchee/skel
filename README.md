@@ -197,13 +197,21 @@ $ make vendor
 
 Build and run executable binaries for our applications.
 
-To build a binary, you need to execute:
+Go supports **cross-compilation**, so you can generate a binary suitable for use
+on a different machine.
+
+Let's create two binaries — one for use on your local machine, and another for
+deploying to the Ubuntu Linux server.
+
+To build binaries, you need to execute:
 
 ```sh
 $ make build/api
 ```
 
-You should see that an executable binary file gets created at `./bin/api`.
+You should see that two binary files are now created — one for local machine at
+`./bin/api`; with the cross-compiled binary located under the
+`./bin/linux_amd64` directory.
 
 And you should be able to run this executable to start your API application,
 passing in any command-line flag values as necessary. For example:
