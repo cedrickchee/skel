@@ -221,3 +221,41 @@ $ ./bin/api -port=3000 -db-dsn=postgres://myuser:mysuperpass@localhost/skel
 {"level":"INFO","time":"2021-09-06T13:00:00Z","message":"database connection pool established"}
 {"level":"INFO","time":"2021-09-06T13:00:00Z","message":"starting server","properties":{"addr":":3000","env":"development"}}
 ```
+
+### Automated Version Numbers
+
+We leverage Git to generate automated version numbers as part of your build
+process. The process "burn-in" a version number and build time to your
+application when building the binary.
+
+The steps are: git commit recent changes, run `make build/api`, and then
+check the version number in your binaries. Like so:
+
+```sh
+$ git add .
+$ git commit -m 'generate version number automatically'
+
+$ make build/api
+Building cmd/api...
+go build -ldflags="-s -X main.buildTime=2021-09-07T12:07:47+08:00 -X main.version=018442b" -o=./bin/api ./cmd/api
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -X main.buildTime=2021-09-07T12:07:47+08:00 -X main.version=018442b" -o=./bin/linux_amd64/api ./cmd/api
+
+$ ./bin/api -version
+Version:    018442b
+Build time: 2021-09-07T12:07:47+08:00
+```
+
+We can see that our binary is now reporting that it was been built from a clean version of the repository with the commit hash `018442b`. Let’s cross check this against the `git log` output for the project:
+
+```sh
+$ git log
+commit 018442b79eec04e2c739d5b3ab1ac4ca7345f17f (HEAD -> main)
+Author: Cedric Chee <cedric@no-reply-github.com>
+Date:   Tue Sep 7 12:07:01 2021 +0800
+
+    generate version number automatically
+
+...
+```
+
+The commit hash in our Git history aligns perfectly with our application version number. And that means it’s now easy for us to identify exactly what code a particular binary contains — all we need to do is run the binary with the `-version` flag and then cross-reference it against the Git repository history.
