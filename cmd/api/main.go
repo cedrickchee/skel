@@ -22,15 +22,16 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Declare a string containing the application version number. Later in the book
-// we'll generate this automatically at build time, but for now we'll just store
-// the version number as a hard-coded global constant.
-const version = "1.0.0"
+var (
+	// version contains the application version number. We'll generate this
+	// automatically at build time.
+	version string
 
-// buildTime is a variable to hold the executable binary build time. Note that
-// this must be a string type, as the -X linker flag will only work with string
-// variables.
-var buildTime string
+	// buildTime is a variable to hold the executable binary build time. Note
+	// that this must be a string type, as the -X linker flag will only work
+	// with string variables.
+	buildTime string
+)
 
 // Define a config struct to hold all the configuration settings for our
 // application. For now, the only configuration settings will be the network
