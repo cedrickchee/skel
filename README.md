@@ -515,3 +515,40 @@ Apr 09 03:15:35 skel-production api[6891]: {"level":"INFO","time":"2021-09-09T07
 
 This confirms that the service is running successfully in the background and, in
 my case, that it has the PID (process ID) `6891`.
+
+#### Use Caddy as a Reverse Proxy
+
+We're now in the state where we have Caddy running as a background service and
+listening for HTTP requests on port `80`.
+
+So the next step in setting up our production environment is to configure Caddy
+to act as a reverse proxy and forward any HTTP requests that it receives onward
+to our API.
+
+To configure Caddy, we created a [Caddyfile](./scripts/production/Caddyfile).
+
+If you’re following along, please go ahead and replace the IP address in the
+Caddyfile with the address of your own droplet (server).
+
+Next deploy this Caddyfile into your droplet:
+
+```sh
+$ make production/configure/caddyfile
+rsync -P ./scripts/production/Caddyfile skel@"X.X.X.X":~
+sending incremental file list
+Caddyfile
+             53 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=0/1)
+ssh -t skel@"X.X.X.X" '\
+        sudo mv ~/Caddyfile /etc/caddy/ \
+        && sudo systemctl reload caddy \
+'
+[sudo] password for skel:
+Connection to X.X.X.X closed.
+```
+
+You should see that the Caddyfile is copied across and the reload executes
+cleanly without any errors.
+
+At this point you can visit `http://<your_droplet_ip>/v1/healthcheck` in a web
+browser, and you should find that the request is successfully forwarded on from
+Caddy to our API.
