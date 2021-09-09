@@ -404,3 +404,114 @@ Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-65-generic x86_64)
   ...
 skel@skel-production:~$
 ```
+
+### Deployment and Running Application
+
+At this point our droplet is set up with all the software and user accounts that we need, so let's move on to the process of deploying and running our API application.
+
+At a very high-level, our deployment process will consist of three actions:
+
+1. Copying the application binary and SQL migration files to the droplet.
+2. Executing the migrations against the PostgreSQL database on the droplet.
+3. Starting the application binary as a _background service_.
+
+To execute the first two steps automatically, we made a `production/deploy/api`
+rule in Makefile.
+
+```sh
+$ make production/deploy/api
+rsync -rP --delete ./bin/linux_amd64/api ./migrations skel@"X.X.X.X":~
+sending incremental file list
+api
+      7,618,560 100%  119.34kB/s    0:01:02 (xfr#1, to-chk=13/14)
+migrations/
+migrations/000001_create_movies_table.down.sql
+             28 100%   27.34kB/s    0:00:00 (xfr#2, to-chk=11/14)
+migrations/000001_create_movies_table.up.sql
+            286 100%  279.30kB/s    0:00:00 (xfr#3, to-chk=10/14)
+migrations/000002_add_movies_check_constraints.down.sql
+            198 100%  193.36kB/s    0:00:00 (xfr#4, to-chk=9/14)
+migrations/000002_add_movies_check_constraints.up.sql
+            289 100%  282.23kB/s    0:00:00 (xfr#5, to-chk=8/14)
+migrations/000003_add_movies_indexes.down.sql
+             78 100%   76.17kB/s    0:00:00 (xfr#6, to-chk=7/14)
+migrations/000003_add_movies_indexes.up.sql
+            170 100%  166.02kB/s    0:00:00 (xfr#7, to-chk=6/14)
+migrations/000004_create_users_table.down.sql
+             27 100%   26.37kB/s    0:00:00 (xfr#8, to-chk=5/14)
+migrations/000004_create_users_table.up.sql
+            294 100%  287.11kB/s    0:00:00 (xfr#9, to-chk=4/14)
+migrations/000005_create_tokens_table.down.sql
+             28 100%   27.34kB/s    0:00:00 (xfr#10, to-chk=3/14)
+migrations/000005_create_tokens_table.up.sql
+            203 100%   99.12kB/s    0:00:00 (xfr#11, to-chk=2/14)
+migrations/000006_add_permissions.down.sql
+             73 100%   35.64kB/s    0:00:00 (xfr#12, to-chk=1/14)
+migrations/000006_add_permissions.up.sql
+            452 100%  220.70kB/s    0:00:00 (xfr#13, to-chk=0/14)
+ssh -t skel@"X.X.X.X" "migrate -path ~/migrations -database $SKEL_DB_DSN up"
+1/u create_movies_table (11.782733ms)
+2/u add_movies_check_constraints (23.109006ms)
+3/u add_movies_indexes (30.61223ms)
+4/u create_users_table (39.890662ms)
+5/u create_tokens_table (48.659641ms)
+6/u add_permissions (58.23243ms)
+Connection to X.X.X.X closed.
+```
+
+#### Running the API as a Background Service
+
+The next step is to configure it to run as a _background service_, including
+starting up automatically when the droplet is rebooted.
+
+We do this using [systemd](https://www.freedesktop.org/wiki/Software/systemd/).
+
+We've made a unit file
+([`scripts/production/api.service`](./scripts/production/api.service)), which
+informs systemd how and when to run the service.
+
+The next step is to install this unit file on our droplet and start up the
+service.
+
+Go ahead and run the Makefile rule. The output you see should look similar to
+this:
+
+```sh
+$ make production/configure/api.service
+rsync -P ./scripts/production/api.service skel@"X.X.X.X":~
+sending incremental file list
+api.service
+          1,266 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=0/1)
+ssh -t skel@"X.X.X.X" '\
+        sudo mv ~/api.service /etc/systemd/system/ \
+        && sudo systemctl enable api \
+        && sudo systemctl restart api \
+'
+[sudo] password for skel:
+Created symlink /etc/systemd/system/multi-user.target.wants/api.service → /etc/systemd/system/api.service.
+Connection to X.X.X.X closed.
+```
+
+Next connect to the droplet and check the status of the new `api` service using
+the `sudo systemctl status api` command:
+
+```sh
+$ make production/connect
+skel@skel-production:~$ sudo systemctl status api
+● api.service - Skel API service
+     Loaded: loaded (/etc/systemd/system/api.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2021-09-09 03:15:35 SGT; 1min 31s ago
+   Main PID: 6891 (api)
+      Tasks: 6 (limit: 1136)
+     Memory: 1.8M
+     CGroup: /system.slice/api.service
+             └─6997 /home/skel/api -port=4000 -db-dsn=postgres://skel:blahP@55blah@localhost/skel -env=production
+
+Apr 09 03:15:35 skel-production systemd[1]: Starting Skel API service...
+Apr 09 03:15:35 skel-production systemd[1]: Started Skel API service.
+Apr 09 03:15:35 skel-production api[6891]: {"level":"INFO","time":"2021-09-09T07:15:35Z", ...}
+Apr 09 03:15:35 skel-production api[6891]: {"level":"INFO","time":"2021-09-09T07:15:35Z", ...}
+```
+
+This confirms that the service is running successfully in the background and, in
+my case, that it has the PID (process ID) `6891`.
