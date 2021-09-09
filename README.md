@@ -571,3 +571,78 @@ $ ssh -L :9999:X.X.X.X:4000 skel@X.X.X.X
 While that tunnel is active, you should be able to visit
 `http://localhost:9999/debug/vars` in your web browser and see your application
 metrics.
+
+## Using a Domain Name (Optional)
+
+For the next step of our deployment, if you want, you can configure Caddy so
+that you can access our droplet via a domain name, instead of needing to use the
+IP address.
+
+I’m going to use the domain `skel.cedricchee.com` in the sample code here, but
+you should swap this out for your own domain if you’re following along.
+
+The first thing you'll need to do is configure the DNS records for your domain
+name so that they contain an `A` record pointing to the IP address for your
+droplet. So in my case the DNS record would look like this:
+
+```
+A     skel.cedricchee.com     X.X.X.X
+```
+
+> **Note:** If you're not sure how to alter your DNS records, your domain name registrar should provide guidance and documentation.
+
+Once you've got the DNS record in place, the next task is to update the
+Caddyfile to use your domain name instead of your droplet's IP address. Go ahead
+and swap this out like so (remember to replace `skel.cedricchee.com` with your
+own domain name):
+
+```
+http://skel.cedricchee.com {
+    respond /debug/* "Not Permitted" 403
+    reverse_proxy localhost:4000
+}
+```
+
+And then redeploy the Caddyfile to your droplet again:
+
+```sh
+$ make production/configure/caddyfile
+```
+
+Once you've done that, you should now be able to access the API via your domain name by visiting `http://<your_domain_name>/v1/healthcheck` in your browser.
+
+## Enabling HTTPS (Optional)
+
+Now that we have a domain name set up we can utilize one of Caddy's headline
+features: _automatic HTTPS_.
+
+Caddy will automatically handle provisioning and renewing TLS certificates for
+your domain via Let's Encrypt, as well as redirecting all HTTP requests to
+HTTPS. It's simple to set up, very robust, and saves you the overhead of needing
+to keep track of certificate renewals manually.
+
+To enable this, we just need to update our `Caddyfile` so that it looks like
+this:
+
+```
+# Set the email address that should be used to contact you if there is a
+# problem with your TLS certificates.
+{
+  email you@example.com
+}
+
+# Remove the http:// prefix from your site address.
+skel.cedricchee.com {
+    respond /debug/* "Not Permitted" 403
+    reverse_proxy localhost:4000
+}
+```
+
+For the final time, deploy this Caddyfile update to your droplet.
+
+```sh
+$ make production/configure/caddyfile
+```
+
+And then when you refresh the page in your web browser, you should find that it
+is automatically redirected to a HTTPS version of the page.
