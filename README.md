@@ -19,11 +19,12 @@ Development practices is based on guiding principles of well written Go code.
 - Correctness
 - Productivity
 
-## Prerequisite
+## Prerequisites
 
 You'll need to install these softwares and tools on your machine:
 
-- PostgreSQL database (version 12+)
+- [Go 1.16 or newer](https://golang.org/dl/)
+- PostgreSQL database (version 12 or newer)
 - make utility
 - [reflex](https://github.com/cespare/reflex) (optional)
 - [staticcheck](https://staticcheck.io/) tool to carry out some [additional static analysis checks](https://staticcheck.io/docs/checks)
@@ -73,9 +74,11 @@ again, which is exactly what we want.
 
 ```sh
 $ go run ./cmd/api --help
-Usage of /tmp/go-build2584491206/b001/exe/api:
+Usage of ./bin/linux_amd64/api:
+  -cors-trusted-origins value
+    	Trusted CORS origins (space separated)
   -db-dsn string
-    	PostgreSQL DSN (default "postgres://skel:pa55word@localhost/skel")
+    	PostgreSQL DSN
   -db-max-idle-conns int
     	PostgreSQL max idle connections (default 25)
   -db-max-idle-time string
@@ -84,8 +87,26 @@ Usage of /tmp/go-build2584491206/b001/exe/api:
     	PostgreSQL max open connections (default 25)
   -env string
     	Environment (development|staging|production) (default "development")
+  -limiter-burst int
+    	Rate limiter maximum burst (default 4)
+  -limiter-enabled
+    	Enable rate limiter (default true)
+  -limiter-rps float
+    	Rate limiter maximum requests per second (default 2)
   -port int
     	API server port (default 4000)
+  -smtp-host string
+    	SMTP host (default "smtp.mailtrap.io")
+  -smtp-password string
+    	SMTP password (default "xxxxxxxxxxxxxx")
+  -smtp-port int
+    	SMTP port (default 2525)
+  -smtp-sender string
+    	SMTP sender (default "Skel <no-reply@example.com>")
+  -smtp-username string
+    	SMTP username (default "xxxxxxxxxxxxxx")
+  -version
+    	Display version and exit
 ```
 
 Start the API, passing in a couple of command line flags for different purposes:
@@ -126,14 +147,18 @@ available targets and the corresponding help text.
 ```sh
 $ make
 Usage:
-  help                        print this help message
-  run/api                     run the cmd/api application
-  db/psql                     connect to the database using psql
-  db/migrations/new name=$1   create a new database migration
-  db/migrations/up            apply all up database migrations
-  audit                       tidy and vendor dependencies and format, vet and test all code
-  vendor                      tidy and vendor dependencies
-  build/api                   build the cmd/api application
+  help                               print this help message
+  run/api                            run the cmd/api application
+  db/psql                            connect to the database using psql
+  db/migrations/new name=$1          create a new database migration
+  db/migrations/up                   apply all up database migrations
+  audit                              tidy and vendor dependencies and format, vet and test all code
+  vendor                             tidy and vendor dependencies
+  build/api                          build the cmd/api application
+  production/connect                 connect to the production server
+  production/deploy/api              deploy the api to production
+  production/configure/api.service   configure the production systemd api.service file
+  production/configure/caddyfile     configure the production Caddyfile
 ```
 
 ### Using make for Common Tasks
@@ -245,7 +270,7 @@ Version:    018442b
 Build time: 2021-09-07T12:07:47+08:00
 ```
 
-We can see that our binary is now reporting that it was been built from a clean version of the repository with the commit hash `018442b`. Let’s cross check this against the `git log` output for the project:
+We can see that our binary is now reporting that it was been built from a clean version of the repository with the commit hash `018442b`. Let's cross check this against the `git log` output for the project:
 
 ```sh
 $ git log
@@ -259,7 +284,7 @@ Date:   Tue Sep 7 12:07:01 2021 +0800
 ```
 
 The commit hash in our Git history aligns perfectly with our application version
-number. And that means it’s now easy for us to identify exactly what code a
+number. And that means it's now easy for us to identify exactly what code a
 particular binary contains — all we need to do is run the binary with the
 `-version` flag and then cross-reference it against the Git repository history.
 
@@ -527,7 +552,7 @@ to our API.
 
 To configure Caddy, we created a [Caddyfile](./scripts/production/Caddyfile).
 
-If you’re following along, please go ahead and replace the IP address in the
+If you're following along, please go ahead and replace the IP address in the
 Caddyfile with the address of your own droplet (server).
 
 Next deploy this Caddyfile into your droplet:
@@ -578,8 +603,8 @@ For the next step of our deployment, if you want, you can configure Caddy so
 that you can access our droplet via a domain name, instead of needing to use the
 IP address.
 
-I’m going to use the domain `skel.cedricchee.com` in the sample code here, but
-you should swap this out for your own domain if you’re following along.
+I'm going to use the domain `skel.cedricchee.com` in the sample code here, but
+you should swap this out for your own domain if you're following along.
 
 The first thing you'll need to do is configure the DNS records for your domain
 name so that they contain an `A` record pointing to the IP address for your
