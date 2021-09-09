@@ -90,3 +90,9 @@ production_host_ip = "INSERT YOUR IP ADDRESS"
 .PHONY: production/connect
 production/connect:
 	ssh skel@${production_host_ip}
+
+## production/deploy/api: deploy the api to production
+.PHONY: production/deploy/api
+production/deploy/api:
+	rsync -rP --delete ./bin/linux_amd64/api ./migrations skel@${production_host_ip}:~
+	ssh -t skel@${production_host_ip} "migrate -path ~/migrations -database \$$SKEL_DB_DSN up"
