@@ -258,4 +258,149 @@ Date:   Tue Sep 7 12:07:01 2021 +0800
 ...
 ```
 
-The commit hash in our Git history aligns perfectly with our application version number. And that means it’s now easy for us to identify exactly what code a particular binary contains — all we need to do is run the binary with the `-version` flag and then cross-reference it against the Git repository history.
+The commit hash in our Git history aligns perfectly with our application version
+number. And that means it’s now easy for us to identify exactly what code a
+particular binary contains — all we need to do is run the binary with the
+`-version` flag and then cross-reference it against the Git repository history.
+
+## Deployment and Hosting
+
+We're going to deploy our API application to a production server and expose it
+on the Internet.
+
+Every project and project team will have different technical and business needs
+in terms of hosting and deployment, so it's impossible to lay out a
+one-size-fits-all approach here.
+
+We'll focus on hosting the application on a self-managed Linux server and using
+standard Linux tooling to manage server configuration and deployment.
+
+We'll also be automating the server configuration and deployment process as much
+as possible, so that it's easy to make _continuous deployments_ and possible to
+_replicate the server_ again in the future if you need to.
+
+We'll be using [Digital Ocean](https://www.digitalocean.com/) as the hosting
+provider.
+
+In terms of infrastructure and architecture, we'll run everything on a single
+Ubuntu Linux server. Our stack will consist of a PostgreSQL database and the
+executable binary for our Skel API, operating in much the same way that we have
+seen so far. But in addition to this, we'll also run
+[Caddy](https://caddyserver.com/) as a _reverse proxy_ in front of the Skel API.
+
+Using Caddy has a couple of benefits. It will automatically handle and terminate
+HTTPS connections for us — including automatically generating and managing TLS
+certificates via [Let's Encrypt](https://letsencrypt.org/) — and we can also use
+Caddy to easily restrict internet access to our metrics endpoint.
+
+You are going to:
+- Provision an Ubuntu Linux server running on Digital Ocean to host your application.
+- Automate the configuration of the server — including creating user accounts, configuring the firewall and installing necessary software.
+- Automate the process of updating your application and deploying changes to the server.
+- Run your application as a background service using [systemd](https://en.wikipedia.org/wiki/Systemd), as a non-root user.
+- Use Caddy as a reverse proxy in front of your application to automatically manage TLS certificates and handle HTTPS connections.
+
+### Server Configuration and Installing Software
+
+Now that our Ubuntu Linux droplet has been successfully commissioned, we need to
+do some housekeeping to secure the server and get it ready-to-use. Rather than
+do this manually, we're going to create and use a reusable script to automate
+these setup tasks.
+
+You can find that regular Bash script in the `scripts/setup` folder in your
+project directory. The script file is called [`01.sh`](./scripts/setup/01.sh).
+
+**Prerequisite**
+_This step ensure your Digital Ocean droplet is up and running and you've been able to successfully connect to it over SSH._
+
+In order to log in to droplets in your Digital Ocean account you'll need a SSH keypair.
+
+> **Suggestion:** If you're unfamiliar with SSH, SSH keys, or public-key cryptography generally, then I recommend reading through the first half of [this guide](https://www.digitalocean.com/community/tutorials/ssh-essentials-working-with-ssh-servers-clients-and-keys) to get an overview before continuing.
+
+Open a new terminal window and try connecting to the droplet via SSH as the
+`root` user, using the droplet IP address. Like so:
+
+```sh
+$ ssh root@{insert your VM IP}
+The authenticity of host 'X.X.X.X (X.X.X.X)' can't be established.
+  ...
+Welcome to Ubuntu 20.04.1 LTS (GNU/Linux 5.4.0-51-generic x86_64)
+  ...
+root@skel-production:~# exit
+logout
+Connection to X.X.X.X closed.
+```
+
+OK, let's now run this script on our new Digital Ocean droplet. This will be a
+two-step process:
+1. First we need to copy the script to the droplet (which we will do using [rsync](https://linux.die.net/man/1/rsync)).
+2. Then we need to connect to the droplet via SSH and execute the script.
+
+Go ahead and run the following command to `rsync` the contents of the
+`/scripts/setup` folder to the root user's home directory on the droplet.
+Remember to replace the IP address with your own!
+
+```sh
+$ rsync -rP --delete ./scripts/setup root@X.X.X.X:/root
+sending incremental file list
+setup/
+setup/01.sh
+          3,327 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=0/2)
+```
+
+Now that a copy of our setup script is on the droplet, let's use the `ssh`
+command to execute the script on the remote machine as the `root` user.
+
+Go ahead and run the script, entering a password for the `skel` _PostgreSQL
+user_, like so:
+
+```sh
+$ ssh -t root@X.X.X.X 'bash /root/setup/01.sh'
+Enter password for skel DB user: mySuprs3cretPASS0121
+'universe' distribution component enabled for all sources.
+Hit:1 http://security.ubuntu.com/ubuntu focal-security InRelease
+Hit:2 https://repos.insights.digitalocean.com/apt/do-agent main InRelease
+     ...
+Script complete! Rebooting...
+Connection to X.X.X.X closed by remote host.
+Connection to X.X.X.X closed.
+```
+
+#### Connecting to the Droplet
+
+After waiting a minute for the reboot to complete, try connecting to the droplet
+as the `skel` user over SSH. This should work correctly (and the SSH key pair
+you created previously should be used to authenticate the connection) but you
+will be prompted to set a password.
+
+To make connecting to the server a bit easier, and so we don't have to remember
+the IP address, we add a Makefile rule for initializing a SSH connection to the
+server as the `skel` user. Like so:
+
+```
+# Makefile
+...
+
+# ============================================================================ #
+# PRODUCTION
+# ============================================================================ #
+
+production_host_ip = "INSERT YOUR IP ADDRESS"
+
+## production/connect: connect to the production server
+.PHONY: production/connect
+production/connect:
+	ssh skel@${production_host_ip}
+```
+
+_Remember to replace the IP address with your own._
+
+You can then connect to your droplet whenever you need to by simply typing:
+
+```sh
+$ make production/connect
+ssh skel@'X.X.X.X'
+Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-65-generic x86_64)
+  ...
+skel@skel-production:~$
+```
