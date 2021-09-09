@@ -552,3 +552,22 @@ cleanly without any errors.
 At this point you can visit `http://<your_droplet_ip>/v1/healthcheck` in a web
 browser, and you should find that the request is successfully forwarded on from
 Caddy to our API.
+
+## Application Metrics
+
+The metrics are no longer publicly accessible, you can still access them by
+connecting to your droplet via SSH.
+
+You can open a SSH tunnel to the droplet and view them using a web browser on
+your local machine. For example, you could open an SSH tunnel between port
+`4000` on the droplet and port `9999` on your local machine by running the
+following command (make sure to replace _both_ IP addresses with your own
+droplet IP):
+
+```sh
+$ ssh -L :9999:X.X.X.X:4000 skel@X.X.X.X
+```
+
+While that tunnel is active, you should be able to visit
+`http://localhost:9999/debug/vars` in your web browser and see your application
+metrics.
