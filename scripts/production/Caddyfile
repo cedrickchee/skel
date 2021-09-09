@@ -1,3 +1,4 @@
 http://{INSERT YOUR IP ADDRESS} {
-  reverse_proxy localhost:4000
+    respond /debug/* "Not Permitted" 403
+    reverse_proxy localhost:4000
 }
