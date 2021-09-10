@@ -1,0 +1,35 @@
+{{define "subject"}}Activate your Skel account{{end}}
+
+{{define "plainBody"}}
+Hi,
+
+Please send a `PUT /v1/users/activated` request with the following JSON body to activate your account:
+
+{"token": "{{.activationToken}}"}
+
+Please note that this is a one-time use token and it will expire in 3 days.
+
+Thanks,
+
+The Skel Team
+{{end}}
+
+{{define "htmlBody"}}
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  </head>
+  <body>
+    <p>Hi,</p>
+    <p>Please send a <code>PUT /v1/users/activated</code> request with the following JSON body to activate your account:</p>
+    <pre><code>
+    {"token": "{{.activationToken}}"}
+    </code></pre>
+    <p>Please note that this is a one-time use token and it will expire in 3 days.</p>
+    <p>Thanks,</p>
+    <p>The Skel Team</p>
+  </body>
+</html>
+{{end}}
