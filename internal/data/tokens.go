@@ -16,6 +16,7 @@ import (
 const (
 	ScopeActivation     = "activation"
 	ScopeAuthentication = "authentication"
+	ScopePasswordReset  = "password-reset"
 )
 
 // Token holds the data for an individual token. This includes the plaintext and
