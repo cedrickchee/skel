@@ -1,1 +1,2 @@
 export SKEL_DB_DSN=postgres://user:secretpassword@localhost/skel
+export JWT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

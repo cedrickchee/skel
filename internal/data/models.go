@@ -30,6 +30,7 @@ type Models struct {
 		GetByEmail(email string) (*User, error)
 		Update(user *User) error
 		GetForToken(tokenScope, tokenPlaintext string) (*User, error)
+		Get(id int64) (*User, error)
 	}
 	Tokens interface {
 		New(userID int64, ttl time.Duration, scope string) (*Token, error)
