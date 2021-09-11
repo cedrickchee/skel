@@ -671,3 +671,23 @@ $ make production/configure/caddyfile
 
 And then when you refresh the page in your web browser, you should find that it
 is automatically redirected to a HTTPS version of the page.
+
+## Working with Branches
+
+You can switch the authentication process for our API to use JSON Web Tokens
+(JWTs). Just `git checkout` the feature branch named
+["feat/jwt-auth"](https://github.com/cedrickchee/skel/tree/feat/jwt-auth).
+
+> **Important:** Using JWTs for this particular application doesn't have any
+> benefits over our current "stateful token" approach. The JWT approach is more
+> complex, ultimately requires the same number of database lookups, and we lose
+> the ability to revoke tokens. For those reasons, it doesn't make much sense to
+> use them here. But I still want to explain the pattern for two reasons:
+>
+> - JWTs have a lot of mind-share, and as a developer it's likely that you will
+>   run into existing codebases that use them for authentication, or that
+>   outside influences mean you are forced to use them.
+>
+> - It's worth understanding how they work in case you need to implement APIs
+>   that require _delegated authentication_, which _is_ a scenario that they're
+>   useful in.
