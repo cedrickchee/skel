@@ -20,10 +20,7 @@ func TestHealthcheckHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Initialize a new dummy http.Request.
-	r, err := http.NewRequest("GET", "/v1/healthcheck", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	r := httptest.NewRequest("GET", "/v1/healthcheck", nil)
 
 	app.healthcheckHandler(rr, r)
 
@@ -57,7 +54,7 @@ func TestHealthcheckHandler(t *testing.T) {
 
 	// JSON decoding
 	var got envelope
-	err = json.NewDecoder(rr.Body).Decode(&got)
+	err := json.NewDecoder(rr.Body).Decode(&got)
 	if err != nil {
 		t.Fatalf("unable to parse response from server %q into envelope, '%v'", rr.Body, err)
 	}
