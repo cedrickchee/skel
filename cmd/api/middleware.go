@@ -448,3 +448,19 @@ func (app *application) metrics(next http.Handler) http.Handler {
 		totalResponseSentByStatus.Add(strconv.Itoa(metrics.Code), 1)
 	})
 }
+
+// logRequest logs HTTP requests. Specifically, we're using the logger to record
+// the IP address of the user, and which URL and method are being requested.
+func (app *application) logRequest(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Log a "request" message.
+		app.logger.PrintInfo("request", map[string]string{
+			"ip_addr":  r.RemoteAddr,
+			"protocol": r.Proto,
+			"method":   r.Method,
+			"path":     r.URL.RequestURI(),
+		})
+
+		next.ServeHTTP(w, r)
+	})
+}
