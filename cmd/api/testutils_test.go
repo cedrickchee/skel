@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
 	"reflect"
 	"testing"
@@ -41,6 +42,24 @@ func newTestServer(t *testing.T, h http.Handler) *testServer {
 	// listens on a randomly-chosen port of your local machine for the duration
 	// of the test.
 	ts := httptest.NewServer(h)
+
+	// Initialize a new cookie jar.
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Add the cookie jar to the client, so that response cookies are stored and
+	// then sent with subsequent requests.
+	ts.Client().Jar = jar
+
+	// Disable redirect-following for the client. Essentially this function is
+	// called after a 3xx response is received by the client, and returning the
+	// http.ErrUseLastResponse error forces it to immediately return the
+	// received response.
+	ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
 	return &testServer{ts}
 }
 
@@ -56,14 +75,10 @@ func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, io.Re
 		t.Fatal(err)
 	}
 
-	// defer rs.Body.Close()
-	// body, err := ioutil.ReadAll(rs.Body)
-	// if err != nil {
-	//     t.Fatal(err)
-	// }
-
 	return rs.StatusCode, rs.Header, rs.Body
 }
+
+// Test assertion functions
 
 func assertEqual(t *testing.T, a, b interface{}) {
 	t.Helper()
