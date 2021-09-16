@@ -126,3 +126,43 @@ func (m TokenModel) DeleteAllForUser(scope string, userID int64) error {
 	_, err := m.DB.ExecContext(ctx, query, scope, userID)
 	return err
 }
+
+// Mocking models
+
+var ttl = 24 * time.Hour
+var plainText = "Y3QMGX3PJ3WLRL2YRTQGQ6KRHU"
+var hash = sha256.Sum256([]byte(plainText))
+var mockToken = &Token{
+	UserID:    mockUser.ID,
+	Plaintext: plainText, // "pa55w0rd",
+	Hash:      hash[:],
+	Expiry:    time.Now().Add(ttl),
+	Scope:     ScopeAuthentication,
+}
+
+// TODO(ced): Should write a unit test for generateToken().
+// var token, err = generateToken(mockUser.ID, 24*time.Hour, data.ScopeAuthentication)
+
+type MockTokenModel struct{}
+
+// New is a shortcut method which creates a new token.
+func (m MockTokenModel) New(userID int64, ttl time.Duration, scope string) (*Token, error) {
+	// token, err := generateToken(userID, ttl, scope)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	token := mockToken
+
+	err := m.Insert(token)
+	return token, err
+}
+
+// Insert inserts the mock token data.
+func (m MockTokenModel) Insert(token *Token) error {
+	return nil
+}
+
+// DeleteAllForUser ...
+func (m MockTokenModel) DeleteAllForUser(scope string, userID int64) error {
+	return nil
+}

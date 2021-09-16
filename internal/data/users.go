@@ -1,6 +1,7 @@
 package data
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"database/sql"
@@ -280,4 +281,86 @@ func (m UserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error)
 
 	// Return the matching user.
 	return &user, nil
+}
+
+// Mocking models
+
+var mockUser = &User{
+	ID:        1,
+	Name:      "John Doe",
+	Email:     "john@example.com",
+	Password:  password{hash: []byte("xxxxxxxx")},
+	Activated: true,
+	CreatedAt: time.Now(),
+	Version:   1,
+}
+
+type MockUserModel struct{}
+
+// Insert inserts a new user record. Note that this user must not be the same as
+// the mockUser.
+func (m MockUserModel) Insert(user *User) error {
+	switch user.Email {
+	case mockUser.Email:
+		return ErrDuplicateEmail
+	default:
+		user.ID = 2
+		user.CreatedAt = time.Now()
+		user.Version = 1
+
+		return nil
+	}
+}
+
+// GetByEmail gets the mockUser.
+func (m MockUserModel) GetByEmail(email string) (*User, error) {
+	// var user User
+
+	if email != mockUser.Email {
+		return nil, ErrRecordNotFound
+	}
+
+	// user = User{
+	// 	ID:        2,
+	// 	CreatedAt: time.Now(),
+	// 	Name:      "Alice",
+	// 	Email:     "alice@example.com",
+	// 	Password:  password{hash: []byte("xxxxxxxx")},
+	// 	Activated: true,
+	// 	Version:   1,
+	// }
+
+	return mockUser, nil
+}
+
+// Update updates the mockUser.
+func (m MockUserModel) Update(user *User) error {
+	switch user.Email {
+	case "dupe@example.com":
+		return ErrDuplicateEmail
+	default:
+		user.Version = user.Version + 1
+
+		return nil
+	}
+}
+
+// GetForToken retrieves the details of the mockUser associated with a
+// particular activation token.
+func (m MockUserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {
+	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
+
+	if res := bytes.Compare(tokenHash[:], mockToken.Hash); res != 0 {
+		return nil, ErrRecordNotFound
+	}
+
+	if tokenScope != mockToken.Scope {
+		return nil, ErrRecordNotFound
+	}
+
+	if mockUser.ID != mockToken.UserID {
+		return nil, ErrRecordNotFound
+	}
+
+	return mockUser, nil
 }

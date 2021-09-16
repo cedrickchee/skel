@@ -313,19 +313,28 @@ func (m MovieModel) GetAll(title string, genres []string,
 // Mocking models
 
 var mockMovie = &Movie{
-	ID:      1,
-	Title:   "Casablance",
-	Year:    1960,
-	Runtime: Runtime(120),
-	Genres:  []string{"drama", "documentary"},
+	ID:        1,
+	Title:     "Casablanca",
+	Year:      1960,
+	Runtime:   Runtime(120),
+	Genres:    []string{"drama", "documentary"},
+	CreatedAt: time.Now(),
+	Version:   1,
 }
 
 type MockMovieModel struct{}
 
+// Insert inserts a new movie record. Note that this movie must not be the same
+// as the mocMovie.
 func (m MockMovieModel) Insert(movie *Movie) error {
+	movie.ID = 2
+	movie.CreatedAt = time.Now()
+	movie.Version = 1
+
 	return nil
 }
 
+// Get gets the mockMovie.
 func (m MockMovieModel) Get(id int64) (*Movie, error) {
 	switch id {
 	case 1:
@@ -335,15 +344,33 @@ func (m MockMovieModel) Get(id int64) (*Movie, error) {
 	}
 }
 
+// Update updates the mockMovie.
 func (m MockMovieModel) Update(movie *Movie) error {
+	movie.Version = movie.Version + 1
+
 	return nil
 }
 
+// Delete deletes the existing mockMovie.
 func (m MockMovieModel) Delete(id int64) error {
-	return nil
+	if id < 1 {
+		return ErrRecordNotFound
+	}
+
+	switch id {
+	case mockMovie.ID:
+		return nil
+	default:
+		return ErrRecordNotFound
+	}
 }
 
+// GetAll filters and returns a slice of movies and pagination metadata.
 func (m MockMovieModel) GetAll(title string, genres []string,
 	filters Filters) ([]*Movie, Metadata, error) {
-	return nil, Metadata{}, nil
+	if title != mockMovie.Title {
+		return nil, Metadata{}, sql.ErrNoRows
+	}
+
+	return []*Movie{mockMovie}, Metadata{1, 10, 1, 1, 2}, nil
 }

@@ -58,5 +58,7 @@ func NewModels(db *sql.DB) Models {
 func NewMockModels() Models {
 	return Models{
 		Movies: MockMovieModel{},
+		Users:  MockUserModel{},
+		Tokens: MockTokenModel{},
 	}
 }
