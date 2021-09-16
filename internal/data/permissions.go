@@ -80,3 +80,36 @@ func (m PermissionModel) AddForUser(userID int64, codes ...string) error {
 	_, err := m.DB.ExecContext(ctx, query, userID, pq.Array(codes))
 	return err
 }
+
+// Mock models
+
+type userPermissions struct {
+	userID      int64
+	permissions Permissions
+}
+
+var mockUserPermissions = []userPermissions{
+	{userID: mockUser.ID, permissions: []string{"movies:read", "movies:write"}},
+	{userID: 2, permissions: []string{"movies:read"}},
+}
+
+type MockPermissionModel struct{}
+
+// GetAllForUser returns all mock permission codes for a specific user.
+func (m MockPermissionModel) GetAllForUser(userID int64) (Permissions, error) {
+	var permissions Permissions
+
+	for i := range mockUserPermissions {
+		if mockUserPermissions[i].userID == userID {
+			permissions = mockUserPermissions[i].permissions
+			return permissions, nil
+		}
+	}
+
+	return nil, ErrRecordNotFound
+}
+
+// AddForUser adds the provided permission codes for a specific user.
+func (m MockPermissionModel) AddForUser(userID int64, codes ...string) error {
+	return nil
+}
