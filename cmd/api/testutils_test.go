@@ -78,6 +78,24 @@ func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, io.Re
 	return rs.StatusCode, rs.Header, rs.Body
 }
 
+// authenticatedGet method makes a GET request to a given url path and auth
+// token on the test server, and returns the response status code, headers and
+// body.
+func (ts *testServer) authenticatedGet(t *testing.T, token *data.Token, urlPath string) (int, http.Header, io.ReadCloser) {
+	t.Helper()
+
+	client := ts.Client()
+	// req := httptest.NewRequest(http.MethodGet, ts.URL+tt.urlPath, nil)
+	req, _ := http.NewRequest(http.MethodGet, ts.URL+urlPath, nil)
+	req.Header.Set("Authorization", "Bearer "+token.Plaintext)
+	rs, err := client.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return rs.StatusCode, rs.Header, rs.Body
+}
+
 // Test assertion functions
 
 func assertEqual(t *testing.T, a, b interface{}) {
