@@ -56,6 +56,14 @@ audit: vendor
 	@echo "Running tests..."
 	go test -race -vet=off ./...
 
+## coverage: go test coverage
+.PHONY: coverage
+coverage:
+	@echo "Running test coverage ..."
+	go test -cover ./...
+	go test -covermode=count -coverprofile=/tmp/profile.out ./...
+	go tool cover -html=/tmp/profile.out
+
 ## vendor: tidy and vendor dependencies
 .PHONY: vendor
 vendor:

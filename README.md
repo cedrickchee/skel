@@ -201,6 +201,40 @@ system or build any binaries.
 $ make audit
 ```
 
+### Profiling Test Coverage
+
+A feature of the `go test` tool is the metrics and visualizations that it
+provides for test coverage.
+
+```sh
+$ make coverage
+Running test coverage ...
+go test -cover ./...
+ok      github.com/cedrickchee/skel/cmd/api     (cached)        coverage: 18.9% of statements
+?       github.com/cedrickchee/skel/cmd/examples/cors/preflight [no test files]
+?       github.com/cedrickchee/skel/cmd/examples/cors/simple    [no test files]
+ok      github.com/cedrickchee/skel/internal/data       (cached)        coverage: 3.3% of statements
+?       github.com/cedrickchee/skel/internal/jsonlog    [no test files]
+?       github.com/cedrickchee/skel/internal/mailer     [no test files]
+?       github.com/cedrickchee/skel/internal/validator  [no test files]
+go test -covermode=count -coverprofile=/tmp/profile.out ./...
+ok      github.com/cedrickchee/skel/cmd/api     0.008s  coverage: 18.9% of statements
+?       github.com/cedrickchee/skel/cmd/examples/cors/preflight [no test files]
+?       github.com/cedrickchee/skel/cmd/examples/cors/simple    [no test files]
+ok      github.com/cedrickchee/skel/internal/data       0.115s  coverage: 3.3% of statements
+?       github.com/cedrickchee/skel/internal/jsonlog    [no test files]
+?       github.com/cedrickchee/skel/internal/mailer     [no test files]
+?       github.com/cedrickchee/skel/internal/validator  [no test files]
+go tool cover -html=/tmp/profile.out
+```
+
+From the results here we can see that 18.9% of the statements in our `cmd/api`
+package are executed during our tests, and for our `internal/data` the figure is
+3.3%.
+
+This will open a browser window containing a navigable and highlighted
+representation of your code.
+
 ## Vendoring New Dependencies
 
 **Note:** It's important to point out that there's no easy way to verify that
