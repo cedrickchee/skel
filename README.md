@@ -725,3 +725,29 @@ You can switch the authentication process for our API to use JSON Web Tokens
 > - It's worth understanding how they work in case you need to implement APIs
 >   that require _delegated authentication_, which _is_ a scenario that they're
 >   useful in.
+
+## License
+
+<details>
+
+<summary><b>Expand License</b></summary>
+
+This repository contains a variety of content; some developed by Cedric Chee, 
+and some from third-parties. The third-party content is distributed under the 
+license provided by those parties.
+
+*I am providing code and resources in this repository to you under an open 
+source license. Because this is my personal repository, the license you receive 
+to my code and resources is from me and not my employer.*
+
+The content developed by Cedric Chee is distributed under the following license:
+
+### Text
+
+The text content is released under the CC-BY-NC-ND license.
+Read more at [Creative Commons](https://creativecommons.org/licenses/by-nc-nd/3.0/us/legalcode).
+
+### Code
+
+The code in this repository is released under the [MIT license](LICENSE).
+</details>
