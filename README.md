@@ -25,6 +25,7 @@ You'll need to install these softwares and tools on your machine:
 
 - [Go 1.16 or newer](https://golang.org/dl/)
 - PostgreSQL database (version 12 or newer)
+- command-line [migrate](https://github.com/golang-migrate/migrate) tool for database migrations
 - make utility
 - [reflex](https://github.com/cespare/reflex) (optional)
 - [staticcheck](https://staticcheck.io/) tool to carry out some [additional static analysis checks](https://staticcheck.io/docs/checks)
@@ -47,6 +48,36 @@ by renaming `.envrc.example` to `.envrc`.
 # PostgreSQL database DSN.
 SKEL_DB_DSN=postgres://skel:pa55word@localhost/skel
 ```
+
+<details>
+
+<summary><b>Expand Database Migrations</b></summary>
+
+**Install the migrate tool**
+
+Detailed installation instructions for different OSes [can be found
+here](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate).
+
+On Linux, the easiest method is to download a [pre-built
+binary](https://github.com/golang-migrate/migrate/releases) and move it to a
+location on your system path:
+
+```sh
+$ curl -L https://github.com/golang-migrate/migrate/releases/download/v4.14.1/migrate.linux-amd64.tar.gz | tar xvz
+$ mv migrate.linux-amd64 $GOPATH/bin/migrate
+```
+
+Before you continue, please check that it’s available and working on your
+machine by trying to execute the `migrate` binary with the `-version` flag. It
+should output the current version number similar to this:
+
+```sh
+$ migrate --version
+4.14.1
+```
+
+</details>
+<br />
 
 Then, you can build and run `skel` by using `make`:
 
