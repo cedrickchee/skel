@@ -19,6 +19,115 @@ Development practices is based on guiding principles of well written Go code.
 - Correctness
 - Productivity
 
+**Software Design**
+
+High level application architecture and systems design.
+
+```mermaid
+flowchart TB
+    subgraph Clients
+        SPA[Single Page Applications]
+        Mobile[Mobile Apps]
+        Services[External Services]
+    end
+
+    subgraph Gateway
+        Caddy[Caddy Reverse Proxy]:::proxy
+        RateLimit[Rate Limiting]:::security
+        CORSMid[CORS Middleware]:::security
+    end
+
+    subgraph API
+        Server[API Server :4000]:::server
+        Routes[Route Handlers]:::routes
+        Auth[Authentication System]:::security
+        Mid[Middleware Components]:::middleware
+        Health[Health Check]:::monitoring
+    end
+
+    subgraph Services
+        Mailer[Mailer Service]:::service
+        Logger[JSON Logger]:::service
+        Validator[Validation Service]:::service
+    end
+
+    subgraph DataLayer
+        Models[Data Models]:::data
+        Movies[Movies Management]:::data
+        Users[Users Management]:::data
+        Pool[Connection Pool]:::data
+        DB[(PostgreSQL)]:::database
+        Migrations[Database Migrations]:::data
+    end
+
+    subgraph EmailTemplates
+        Welcome[Welcome Template]:::template
+        Activation[Activation Template]:::template
+        Reset[Password Reset Template]:::template
+    end
+
+    %% Client to Gateway Connections
+    SPA & Mobile & Services --> Caddy
+    
+    %% Gateway Flow
+    Caddy --> RateLimit
+    RateLimit --> CORSMid
+    CORSMid --> Server
+    
+    %% API Layer Connections
+    Server --> Routes
+    Server --> Auth
+    Server --> Mid
+    Server --> Health
+    
+    %% Service Layer Connections
+    Routes --> Mailer
+    Routes --> Logger
+    Routes --> Validator
+    
+    %% Data Layer Connections
+    Routes --> Models
+    Models --> Pool
+    Pool --> DB
+    Movies & Users --> Pool
+    Migrations --> DB
+    
+    %% Email Template Connections
+    Mailer --> Welcome
+    Mailer --> Activation
+    Mailer --> Reset
+
+    %% Styles
+    classDef proxy fill:#f96
+    classDef security fill:#f66
+    classDef server fill:#6f6
+    classDef routes fill:#6f9
+    classDef middleware fill:#69f
+    classDef monitoring fill:#ff9
+    classDef service fill:#c9f
+    classDef data fill:#fc9
+    classDef database fill:#9cf
+    classDef template fill:#fcf
+
+    %% Click Events
+    click Caddy "https://github.com/cedrickchee/skel/tree/main/scripts/production/Caddyfile"
+    click Server "https://github.com/cedrickchee/skel/blob/main/cmd/api/main.go"
+    click Routes "https://github.com/cedrickchee/skel/blob/main/cmd/api/routes.go"
+    click Auth "https://github.com/cedrickchee/skel/blob/main/cmd/api/tokens.go"
+    click Mid "https://github.com/cedrickchee/skel/blob/main/cmd/api/middleware.go"
+    click Mailer "https://github.com/cedrickchee/skel/blob/main/internal/mailer/mailer.go"
+    click Logger "https://github.com/cedrickchee/skel/blob/main/internal/jsonlog/jsonlog.go"
+    click Validator "https://github.com/cedrickchee/skel/blob/main/internal/validator/validator.go"
+    click Models "https://github.com/cedrickchee/skel/blob/main/internal/data/models.go"
+    click Movies "https://github.com/cedrickchee/skel/blob/main/internal/data/movies.go"
+    click Users "https://github.com/cedrickchee/skel/blob/main/internal/data/users.go"
+    click Migrations "https://github.com/cedrickchee/skel/tree/main/migrations/"
+    click Welcome "https://github.com/cedrickchee/skel/blob/main/internal/mailer/templates/user_welcome.tmpl"
+    click Activation "https://github.com/cedrickchee/skel/blob/main/internal/mailer/templates/token_activation.tmpl"
+    click Reset "https://github.com/cedrickchee/skel/blob/main/internal/mailer/templates/token_password_reset.tmpl"
+    click Health "https://github.com/cedrickchee/skel/blob/main/cmd/api/healthcheck.go"
+```
+
 ## Prerequisites
 
 You'll need to install these softwares and tools on your machine:
